@@ -13,7 +13,9 @@ buildah add $ctr "https://dl.google.com/drive/gsync_enterprise64.msi" /tmp/
 buildah copy $ctr user_setup.config /config/user_default/
 buildah run $ctr sh -c '
 	mkdir -p "$WINEPREFIX/drive_c/users/root/Local Settings/Application Data/Google"
-	ln -s /config "$WINEPREFIX/drive_c/users/root/Local Settings/Application Data/Google/Drive"'
+	ln -s /config "$WINEPREFIX/drive_c/users/root/Local Settings/Application Data/Google/Drive"
+	mkdir -p /upload
+	ln -s /upload "$WINEPREFIX/drive_c/upload"'
 buildah run $ctr sh -c '
 	wine64 msiexec /i /tmp/gsync_enterprise64.msi || exit $?
 	# terminate wineserver etc to allow everything to save state
@@ -37,7 +39,6 @@ buildah config \
 	--cmd "wine64 '$WINEPREFIX/drive_c/Program Files/Google/Drive/googledrivesync.exe'" \
 	--workingdir /config \
 	--volume /config \
-	--volume /upload \
 	$ctr
 
 img=$(buildah commit --rm $ctr gphotos-uploader)
