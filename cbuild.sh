@@ -24,6 +24,8 @@ buildah run $ctr sh -c '
 	done'
 buildah run $ctr rm -f /tmp/gsync_enterprise64.msi # /tmp/wine_gecko-2.47-x86_64.msi
 
+buildah copy $ctr entrypoint.sh /usr/local/bin/
+
 buildah copy $ctr oauth-proxy-url-handler.sh /usr/local/bin/oauth-proxy-url-handler
 buildah run $ctr sed -i \
 	-e '/\[Software\\\\Classes\\\\http\(s\)\?\\\\shell\\\\open\\\\command\]/,/^$/ s/winebrowser\.exe\\" -nohome"/winebrowser.exe\\" \\"%1\\""/' \
@@ -36,7 +38,8 @@ buildah run $ctr sh -c 'cat >> "$WINEPREFIX/user.reg"' <<-"E_REGTEXT"
 E_REGTEXT
 
 buildah config \
-	--cmd "wine64 '$WINEPREFIX/drive_c/Program Files/Google/Drive/googledrivesync.exe'" \
+	--entrypoint '["/usr/local/bin/entrypoint.sh"]' \
+	--cmd "googledrivesync" \
 	--workingdir /config \
 	--volume /config \
 	$ctr
