@@ -13,9 +13,7 @@ buildah add $ctr "https://dl.google.com/drive/gsync_enterprise64.msi" /tmp/
 buildah copy $ctr user_setup.config /config/user_default/
 buildah run $ctr sh -c '
 	mkdir -p "$WINEPREFIX/drive_c/users/root/Local Settings/Application Data/Google"
-	ln -s /config "$WINEPREFIX/drive_c/users/root/Local Settings/Application Data/Google/Drive"
-	mkdir -p /upload
-	ln -s /upload "$WINEPREFIX/drive_c/upload"'
+	ln -s /config "$WINEPREFIX/drive_c/users/root/Local Settings/Application Data/Google/Drive"'
 buildah run $ctr sh -c '
 	wine64 msiexec /i /tmp/gsync_enterprise64.msi || exit $?
 	# terminate wineserver etc to allow everything to save state
@@ -23,6 +21,8 @@ buildah run $ctr sh -c '
 		sleep 0.1
 	done'
 buildah run $ctr rm -f /tmp/gsync_enterprise64.msi # /tmp/wine_gecko-2.47-x86_64.msi
+
+buildah run $ctr sh -c 'mkdir -p /upload && ln -s /upload "$WINEPREFIX/dosdevices/u:"'
 
 buildah run $ctr sh -c 'apt-get update && DEBIAN_FRONTEND=noninteractive apt-get -y install xvfb'
 buildah copy $ctr entrypoint.sh /usr/local/bin/
