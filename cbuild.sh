@@ -24,7 +24,10 @@ buildah run $ctr sh -c '
 	done'
 buildah run $ctr rm -f /tmp/gsync_enterprise64.msi # /tmp/wine_gecko-2.47-x86_64.msi
 
+buildah run $ctr sh -c 'apt-get update && DEBIAN_FRONTEND=noninteractive apt-get -y install xvfb'
 buildah copy $ctr entrypoint.sh /usr/local/bin/
+
+buildah run $ctr sh -c "[ -d /var/lib/apt/lists ] && rm -rf /var/lib/apt/lists/*"
 
 buildah copy $ctr oauth-proxy-url-handler.sh /usr/local/bin/oauth-proxy-url-handler
 buildah run $ctr sed -i \
