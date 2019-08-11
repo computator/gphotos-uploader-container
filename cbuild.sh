@@ -46,6 +46,7 @@ buildah config \
 	--cmd "googledrivesync" \
 	--workingdir /config \
 	--volume /config \
+	--volume /upload \
 	$ctr
 
 img=$(buildah commit --rm $ctr gphotos-uploader)
