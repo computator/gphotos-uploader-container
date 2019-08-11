@@ -6,9 +6,17 @@ exec >&2
 if expr match "$1" '.*google\.com/\S*/oauth\S*/auth?' > /dev/null; then
 	auth_url="$1"
 	int_port=$(expr match "$auth_url" '.*redirect_uri=http%3A%2F%2Flocalhost%3A\([0-9]\+\).*')
+	tput setaf 4 # set blue
+	printf '%40s\n' | tr ' ' '='
 	echo "Found OAuth listening port ${int_port}"
 	echo "Auth URL: ${auth_url}"
+	printf '%40s\n' | tr ' ' '='
+	tput sgr0 # clear
 else
+	tput setaf 1 # set red
+	printf '%40s\n' | tr ' ' '='
 	echo "Got invalid OAuth URL:" "$1"
+	printf '%40s\n' | tr ' ' '='
+	tput sgr0 # clear
 	exit 1
 fi
