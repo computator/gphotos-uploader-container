@@ -3,9 +3,13 @@ set -e
 
 REGFILE="/config/drive_config.reg"
 
+pid=
+
 handle_exit() {
-	# kill all children
-	pkill -P $$ || true
+	[ -z "$pid" ] || kill $pid || true
+	sleep 1
+	while pkill -f 'googledrivesync\.exe|GoogleUpdate'; do sleep 1; done
+	while pkill -fi 'C:\\|wineserver'; do sleep 0.2; done
 }
 
 load_reg() {
@@ -41,7 +45,7 @@ if [ "$1" = 'googledrivesync' ]; then
 
 	wait $pid && rv=$? || rv=$? # saves exit code in rv after waiting
 
-	[ -n "$fb_pid" ] && kill $fb_pid || true
+	[ -n "$fb_pid" ] && kill $fb_pid 2>/dev/null || true
 	save_reg
 
 	exit $rv
