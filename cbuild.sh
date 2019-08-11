@@ -14,6 +14,7 @@ buildah copy $ctr user_setup.config /config/user_default/
 buildah run $ctr sh -c '
 	mkdir -p "$WINEPREFIX/drive_c/users/root/Local Settings/Application Data/Google"
 	ln -s /config "$WINEPREFIX/drive_c/users/root/Local Settings/Application Data/Google/Drive"'
+buildah run $ctr sh -c 'mkdir -p "$WINEPREFIX/drive_c/users/root" && ln -s /tmp "$WINEPREFIX/drive_c/users/root/Temp"'
 buildah run $ctr sh -c '
 	wine64 msiexec /i /tmp/gsync_enterprise64.msi || exit $?
 	# terminate wineserver etc to allow everything to save state
