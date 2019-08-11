@@ -1,27 +1,50 @@
 #!/bin/sh
 set -e
 
-pid=
-fb_pid=
+REGFILE="/config/drive_config.reg"
 
 handle_exit() {
-	# kill children of pid if set, otherwise all children
-	pkill -P ${!:-$$}
+	# kill all children
+	pkill -P $$ || true
+}
+
+load_reg() {
+	[ -f "$REGFILE" ] || return 0
+	sed -i -e '
+			/\[Software\\\\Google\\\\Drive\]/,/^$/ {
+				/^$/ r '"$REGFILE"'
+				d
+			}
+		' "$WINEPREFIX/user.reg"
+}
+
+save_reg() {
+	sed -e '/\[Software\\\\Google\\\\Drive\]/,/^$/! d' \
+		"$WINEPREFIX/user.reg" > "$REGFILE"
 }
 
 if [ "$1" = 'googledrivesync' ]; then
 	trap handle_exit INT TERM
+
+	load_reg
+
+	fb_pid=
 	if [ -z "$DISPLAY" ] && ! mountpoint -q /tmp/.X11-unix; then
 		export DISPLAY=:11
 		Xvfb $DISPLAY &
 		fb_pid=$!
 	fi
+
 	wine64 "$WINEPREFIX/drive_c/Program Files/Google/Drive/googledrivesync.exe" &
 	pid=$!
 	tail --follow=name --retry --lines=0 --pid $pid /config/user_default/sync_log.log 2> /dev/null &
-	wait $pid
-	[ -n "$fb_pid" ] && kill $fb_pid
-	exit $?
+
+	wait $pid && rv=$? || rv=$? # saves exit code in rv after waiting
+
+	[ -n "$fb_pid" ] && kill $fb_pid || true
+	save_reg
+
+	exit $rv
 fi
 
 exec "$@"
